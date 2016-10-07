@@ -1,0 +1,5 @@
+//VALCOMP1 JOB 1,NOTIFY=&SYSUID,MSGCLASS=H,CLASS=A                      00010001
+//* TEST FOR THE THIRD PROGRAM                                          00020001
+//  EXEC IGYWCL                                                         00030001
+//COBOL.SYSIN  DD DSN=&SYSUID..COBOL.PROGS(VALID1),DISP=SHR             00040001
+//LKED.SYSLMOD DD DSN=&SYSUID..LOAD(VALID1),DISP=SHR                    00050001

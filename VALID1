@@ -1,0 +1,768 @@
+       IDENTIFICATION DIVISION.                                         00010000
+      *                                                                 00020001
+       PROGRAM-ID. VALID1.                                              00030001
+       AUTHOR. BRETT MITCHELL.                                          00040001
+       DATE-WRITTEN.                                                    00050001
+       DATE-COMPILED.                                                   00060001
+      *                                                                 00070001
+      *
+      *PROGRAM DESCRIPTION.
+      *
+      * PURPOSE:
+      *         THE PURPOSE OF THIS PROGRAM IS TO VALIDATE FIELDS IN
+      *         THE SALES REP FILE. THE PROGRAM THEN PRODUCES AN
+      *         ERROR REPORT, A FILE CONTAINING THE VALID DATA, AND
+      *         A FILE CONTAINING THE INVALID DATA.
+      *
+      * INPUT:
+      *         INPUT TO THE PROGRAM IS THE SALES REP FILE.
+      *
+      *
+      * OUTPUT:
+      *         OUTPUT FROM THE PROGRAM IS THE ERROR REPORT
+      *         ,THE GOOD DATA FILE, AND THE BAD DATA FILE.  THE
+      *         ERROR REPORT WILL PRINT EACH FILE, AND IF THERE IS 
+      *         AN ERROR IT WILL PUT X's UNDER THE FIELD, AS WELL.
+      *         AS SHOWING THE APPROPRIATE ERROR MESSAGES.
+      *         THE GOOD DATA FILE CONTAINS ALL VALID DATA.
+      *         THE BAD DATA FILE CONTAINS ALL INVALID DATA.
+      *
+      * PROCESSING:
+      *         THE FOLLOWING VALIDATION TESTS ARE PERFORMED ON
+      *         INDIVIDUAL FIELDS:
+      *
+      *                 FIELDS                  TESTS
+      *         TERRITORY               PRESENT (NOT ALL SPACES)
+      *                                 IF IT IS IN TERRITORY TABLE
+      *         DISTRICT                PRESENT (NOT ALL SPACES)
+      *                                 NUMERIC (UNSIGNED)
+      *         REPRESENTATIVE NUMBER   PRESENT (NOT ALL SPACES)
+      *         REPRESENTATIVE NAME     PRESENT (NOT ALL SPACES)
+      *         REPRESENTATIVE ADDRESS  PRESENT (NOT ALL SPACES)
+      *         REPRESENTATIVE CITY     PRESENT (NOT ALL SPACES)
+      *         REPRESENTATIVE STATE    PRESENT (NOT ALL SPACES)
+      *         REPRESENTATIVE ZIPCODE  PRESENT (NOT ALL SPACES)
+      *                                 NUMERIC (UNSIGNED)
+      *         NUMBER OF PARTS
+      *         PURCHASED               PRESENT (NOT ALL SPACES)
+      *                                 NUMERIC (UNSIGNED)
+      *         AMOUNT OWED ON PARTS    PRESENT (NOT ALL SPACES)
+      *                                 NUMERIC (UNSIGNED)
+      *         DATE OF LAST PAYMENT
+      *         FOR PARTS               PRESENT (NOT ALL SPACES)
+      *                                 NUMERIC (UNSIGNED)
+      *                                 FIRST TWO DIGITS BETWEEN 
+      *                                 1 AND 12(MONTH) 
+      *                                 NEXT TWO DIGITS BETWEEN 
+      *                                 1 AND 31(DAY)
+      *         AMOUNT PAID ON LAST
+      *         PAYMENT FOR PARTS       PRESENT (NOT ALL SPACES)
+      *                                 NUMERIC (UNSIGNED) 
+      *         COUNTRY REP IS
+      *         REPONSIBLE FOR          PRESENT (NOT ALL SPACES)
+      *                                 NUMERIC (UNSIGNED) 
+      *                                 COUNTRY CODE BETWEEN 1 AND 15
+      *
+      *                                                                 00260003
+      *                                                                 00270003
+       ENVIRONMENT DIVISION.                                            00280003
+      *                                                                 00290003
+       INPUT-OUTPUT SECTION.                                            00300003
+      *                                                                 00310003
+       FILE-CONTROL.                                                    00320003
+            SELECT INPUT-FILE  ASSIGN TO INFILE.                        00330003
+            SELECT REPORT-FILE ASSIGN TO OUTFILE.                       00340003
+            SELECT GOOD-FILE ASSIGN TO GOOD.                            00340003
+            SELECT BAD-FILE ASSIGN TO BAD.                              00340003
+      *                                                                 00350003
+      *                                                                 00360003
+       DATA DIVISION.                                                   00370003
+      *                                                                 00380003
+       FILE SECTION.                                                    00390003
+      *                                                                 00400003
+       FD  INPUT-FILE                                                   00410003
+           RECORD CONTAINS 99 CHARACTERS                                00420003
+           RECORDING MODE IS F                                          00430003
+           LABEL RECORDS ARE STANDARD                                   00440006
+           DATA RECORD IS IN-RECORD.                                    00450003
+      *                                                                 00460003
+       01  IN-RECORD.                                                   00470003
+           05 IN-TERRITORY     PIC X(2).                                00480003
+           05 IN-FILLER        PIC X(2).                                00510003
+           05 IN-DISTRICT      PIC X(4).                                00490003
+           05 IN-FILLER2       PIC X(1).                                00510003
+           05 IN-NUMBER        PIC X(3).                                00490003
+           05 IN-FILLER3       PIC X(2).                                00510003
+           05 IN-NAME          PIC X(18).                               00490003
+           05 IN-ADDRESS       PIC X(22).                               00500003
+           05 IN-CITY          PIC X(11).                               00500003
+           05 IN-STATE         PIC X(2).                                00510003
+           05 IN-ZIPCODE       PIC X(5).                                00520003
+           05 IN-FILLER4       PIC X(1).                                00510003
+           05 IN-PARTS         PIC X(2).                                00510003
+           05 IN-FILLER5       PIC X(1).                                00510003
+           05 IN-AMOUNT-OWED   PIC X(5).                                00530003
+           05 IN-FILLER6       PIC X(1).                                00510003
+           05 IN-LAST-PAY-DATE PIC X(8).                                00530003
+           05 IN-FILLER7       PIC X(1).                                00510003
+           05 IN-LAST-PAY-AMT  PIC X(6).                                00530003
+           05 IN-COUNTRY       PIC X(2).                                00530003
+      *                                                                 00540003
+       FD  REPORT-FILE                                                  00550003
+           RECORD CONTAINS 132 CHARACTERS                               00560003
+           RECORDING MODE IS F                                          00570003
+           LABEL RECORDS ARE STANDARD                                   00580006
+           DATA RECORD IS REPORT-LINE.                                  00590003
+      *                                                                 00600003
+       01  REPORT-LINE         PIC X(132).                              00610007
+      *                                                                 00600003
+       FD  GOOD-FILE                                                    00550003
+           RECORD CONTAINS 99 CHARACTERS                                00560003
+           RECORDING MODE IS F                                          00570003
+           LABEL RECORDS ARE STANDARD                                   00580006
+           DATA RECORD IS GOOD-LINE.                                    00590003
+      *                                                                 00600003
+       01  GOOD-LINE         PIC X(99).                                 00610007
+      *                                                                 00600003
+       FD  BAD-FILE                                                     00550003
+           RECORD CONTAINS 99 CHARACTERS                                00560003
+           RECORDING MODE IS F                                          00570003
+           LABEL RECORDS ARE STANDARD                                   00580006
+           DATA RECORD IS BAD-LINE.                                     00590003
+      *                                                                 00600003
+       01  BAD-LINE         PIC X(99).                                  00610007
+      *                                                                 00620003
+      *                                                                 00630003
+       WORKING-STORAGE SECTION.                                         00640003
+      *                                                                 00650003
+       01  WS-SWITCHES.                                                 00660003
+           05  WS-EOF-SWITCH   PIC X  VALUE "N".                        00670003
+               88  EOF VALUE "Y".                                       00670003
+      *                                                                 00680003
+       01  WS-SUBSCRIPTS.                                               00660003
+           05  WS-ERROR-SUB    PIC 99.                                  00670003
+      *                                                                 00650003
+       01  PRINT-FIELDS.                                                00680003
+           05 PAGE-COUNT       PIC S9(3) VALUE ZERO.                    00690003
+           05 LINES-PER-PAGE   PIC 9(3) VALUE 35.                       00690003
+           05 MAX-LINES        PIC 9(3) VALUE 45.                       00690003
+           05 DIFFERENCE       PIC 9(3).                                00690003
+           05 LINE-COUNT       PIC S9(3) VALUE +99.                     00690003
+      *                                                                 00720003
+       01  TOTALS.                                                      00680003
+           05 RECORD-COUNT     PIC  9(3) VALUE ZERO.                    00690003
+           05 BAD-COUNT        PIC  9(3) VALUE ZERO.                    00690003
+           05 GOOD-COUNT       PIC  9(3) VALUE ZERO.                    00690003
+           05 MISSING-COUNT    PIC  9(3) VALUE ZERO.                    00690003
+           05 NOT-ALPHA-COUNT  PIC  9(3) VALUE ZERO.                    00690003
+      *                                                                 00720003
+       01  VALIDATION-FIELDS.                                           00680003
+           05 PASSED           PIC X VALUE "Y".                         00690003
+              88 PASS          VALUE "Y".                               00690003
+              88 FAIL          VALUE "N".                               00690003
+      *                                                                 00720003
+       01  NUMERIC-FIELDS.                                              00680003
+           05 NM-DAY           PIC 9(2).                                00690003
+           05 NM-MONTH         PIC 9(2).                                00520003
+           05 NM-COUNTRY       PIC 9(2).                                00530003
+      *                                                                 00720003
+       01  INTERMEDIATE-FIELDS.                                         00680003
+           05 ALPH-DAY         PIC X(4).                                00690003
+           05 ALPH-MONTH       PIC X(2).                                00690003
+      *                                                                 00720003
+       01  CURRENT-DATE-AND-TIME.                                       00750003
+           05 CD-YEAR          PIC 9(4).                                00750003
+           05 CD-MONTH         PIC 99.                                  00750003
+           05 CD-DAY           PIC 99.                                  00750003
+           05 CD-HOUR          PIC 99.                                  00750003
+           05 CD-MINUTE        PIC 99.                                  00750003
+           05 CD-SECOND        PIC 99.                                  00750003
+           05 FILLER           PIC X(9).                                00750003
+      *                                                                 00690003
+       01  WS-MONTH-VALUES.                                             00690003
+           05 FILLER           PIC X(9)  VALUE "  JANUARY".             00690003
+           05 FILLER           PIC X(9)  VALUE " FEBRUARY".             00690003
+           05 FILLER           PIC X(9)  VALUE "    MARCH".             00690003
+           05 FILLER           PIC X(9)  VALUE "    APRIL".             00690003
+           05 FILLER           PIC X(9)  VALUE "      MAY".             00690003
+           05 FILLER           PIC X(9)  VALUE "     JUNE".             00690003
+           05 FILLER           PIC X(9)  VALUE "     JULY".             00690003
+           05 FILLER           PIC X(9)  VALUE "   AUGUST".             00690003
+           05 FILLER           PIC X(9)  VALUE "SEPTEMBER".             00690003
+           05 FILLER           PIC X(9)  VALUE "  OCTOBER".             00690003
+           05 FILLER           PIC X(9)  VALUE " NOVEMBER".             00690003
+           05 FILLER           PIC X(9)  VALUE " DECEMBER".             00690003
+      *                                                                 00690003
+       01  WS-MONTH-TABLE REDEFINES WS-MONTH-VALUES.                    00690003
+           05 WS-MONTH-NAME    PIC X(9)                                 00690003
+                               OCCURS 12 TIMES.                         00690003
+      *                                                                 00690003
+       01  WS-ERROR-VALUES.                                             00690003
+           05 WS-ERROR-11      PIC X  VALUE "N".                        00690003
+           05 WS-MESSAGE-11             PIC X(50) VALUE                 00690003
+              "TERRITORY FIELD IS NOT PRESENT                    ".     00690003
+      *                                                                 00690003
+           05 WS-ERROR-12      PIC X  VALUE "N".                        00690003
+           05 WS-MESSAGE-12             PIC X(50) VALUE                 00690003
+              "TERRITORY DOES NOT EXIST                          ".     00690003
+      *                                                                 00690003
+           05 WS-ERROR-21      PIC X  VALUE "N".                        00690003
+           05 WS-MESSAGE-21             PIC X(50) VALUE                 00690003
+              "DISTRICT FIELD IS NOT PRESENT                     ".     00690003
+      *                                                                 00690003
+           05 WS-ERROR-22      PIC X  VALUE "N".                        00690003
+           05 WS-MESSAGE-22             PIC X(50) VALUE                 00690003
+              "DISTRICT FIELD IS NOT NUMERIC                     ".     00690003
+      *                                                                 00690003
+           05 WS-ERROR-31      PIC X  VALUE "N".                        00690003
+           05 WS-MESSAGE-31             PIC X(50) VALUE                 00690003
+              "REPRESENTATIVE NUMBER NOT PRESENT                 ".     00690003
+      *                                                                 00690003
+           05 WS-ERROR-41      PIC X  VALUE "N".                        00690003
+           05 WS-MESSAGE-41             PIC X(50) VALUE                 00690003
+              "REPRESENTATIVE NAME NOT PRESENT                   ".     00690003
+      *                                                                 00690003
+           05 WS-ERROR-51      PIC X  VALUE "N".                        00690003
+           05 WS-MESSAGE-51             PIC X(50) VALUE                 00690003
+              "REPRESENTATIVE ADDRESS NOT PRESENT                ".     00690003
+      *                                                                 00690003
+           05 WS-ERROR-61      PIC X  VALUE "N".                        00690003
+           05 WS-MESSAGE-61             PIC X(50) VALUE                 00690003
+              "REPRESENTATIVE CITY NOT PRESENT                   ".     00690003
+      *                                                                 00690003
+           05 WS-ERROR-71      PIC X  VALUE "N".                        00690003
+           05 WS-MESSAGE-71             PIC X(50) VALUE                 00690003
+              "REPRESENTATIVE STATE NOT PRESENT                  ".     00690003
+      *                                                                 00690003
+           05 WS-ERROR-81      PIC X  VALUE "N".                        00690003
+           05 WS-MESSAGE-81             PIC X(50) VALUE                 00690003
+              "REPRESENTATIVE ZIPCODE NOT PRESENT                ".     00690003
+      *                                                                 00690003
+           05 WS-ERROR-82      PIC X  VALUE "N".                        00690003
+           05 WS-MESSAGE-82             PIC X(50) VALUE                 00690003
+              "REPRESENTATIVE ZIPCODE IS NOT NUMERIC             ".     00690003
+      *                                                                 00690003
+           05 WS-ERROR-91      PIC X  VALUE "N".                        00690003
+           05 WS-MESSAGE-91             PIC X(50) VALUE                 00690003
+              "NUMBER OF PARTS PURCHASED NOT PRESENT             ".     00690003
+      *                                                                 00690003
+           05 WS-ERROR-92      PIC X  VALUE "N".                        00690003
+           05 WS-MESSAGE-92             PIC X(50) VALUE                 00690003
+              "NUMBER OF PARTS PURCHASED IS NOT NUMERIC          ".     00690003
+      *                                                                 00690003
+           05 WS-ERROR-101      PIC X  VALUE "N".                       00690003
+           05 WS-MESSAGE-101             PIC X(50) VALUE                00690003
+              "AMOUNT OWED ON PARTS NOT PRESENT                  ".     00690003
+      *                                                                 00690003
+           05 WS-ERROR-102      PIC X  VALUE "N".                       00690003
+           05 WS-MESSAGE-102             PIC X(50) VALUE                00690003
+              "AMOUNT OWED ON PARTS IS NOT NUMERIC               ".     00690003
+      *                                                                 00690003
+           05 WS-ERROR-111      PIC X  VALUE "N".                       00690003
+           05 WS-MESSAGE-111             PIC X(50) VALUE                00690003
+              "DATE OF LAST PAYMENT ON PARTS NOT PRESENT         ".     00690003
+      *                                                                 00690003
+           05 WS-ERROR-112      PIC X  VALUE "N".                       00690003
+           05 WS-MESSAGE-112             PIC X(50) VALUE                00690003
+              "DATE OF LAST PAYMENT ON PARTS IS NOT NUMERIC      ".     00690003
+      *                                                                 00690003
+           05 WS-ERROR-113      PIC X  VALUE "N".                       00690003
+           05 WS-MESSAGE-113             PIC X(50) VALUE                00690003
+              "MONTH ABOVE 12 OR BELOW 1. FORMAT IS MMDDYYY      ".     00690003
+      *                                                                 00690003
+           05 WS-ERROR-114      PIC X  VALUE "N".                       00690003
+           05 WS-MESSAGE-114             PIC X(50) VALUE                00690003
+              "DAY ABOVE 31 OR BELOW 1. FORMAT IS MMDDYYY        ".     00690003
+      *                                                                 00690003
+           05 WS-ERROR-121      PIC X  VALUE "N".                       00690003
+           05 WS-MESSAGE-121             PIC X(50) VALUE                00690003
+              "LAST PAYMENT AMOUNT NOT PRESENT                   ".     00690003
+      *                                                                 00690003
+           05 WS-ERROR-122      PIC X  VALUE "N".                       00690003
+           05 WS-MESSAGE-122             PIC X(50) VALUE                00690003
+              "LAST PAYMENT AMOUNT IS NOT NUMERIC                ".     00690003
+      *                                                                 00690003
+           05 WS-ERROR-131      PIC X  VALUE "N".                       00690003
+           05 WS-MESSAGE-131             PIC X(50) VALUE                00690003
+              "COUNTRY CODE NOT PRESENT                          ".     00690003
+      *                                                                 00690003
+           05 WS-ERROR-132      PIC X  VALUE "N".                       00690003
+           05 WS-MESSAGE-132             PIC X(50) VALUE                00690003
+              "COUNTRY CODE IS NOT NUMERIC                       ".     00690003
+      *                                                                 00690003
+           05 WS-ERROR-133      PIC X  VALUE "N".                       00690003
+           05 WS-MESSAGE-133             PIC X(50) VALUE                00690003
+              "COUNTRY CODE IS ABOVE 15 OR BELOW 1               ".     00690003
+      *                                                                 00690003
+       01  WS-ERROR-TABLE REDEFINES WS-ERROR-VALUES.                    00690003
+           05 WS-ERROR-ENTRY OCCURS 24 TIMES.                           00690003
+              10 ERROR-FLAG        PIC X.                               00690003
+              10 ERROR-MSG         PIC X(50).                           00690003
+      *                                                                 00690003
+       01  WS-TERRITORY-VALUES.                                         00690003
+           05 FILLER           PIC X(2)  VALUE "N ".                    00690003
+           05 FILLER           PIC X(2)  VALUE "NE".                    00690003
+           05 FILLER           PIC X(2)  VALUE "NW".                    00690003
+           05 FILLER           PIC X(2)  VALUE "S ".                    00690003
+           05 FILLER           PIC X(2)  VALUE "SE".                    00690003
+           05 FILLER           PIC X(2)  VALUE "SW".                    00690003
+           05 FILLER           PIC X(2)  VALUE "MW".                    00690003
+           05 FILLER           PIC X(2)  VALUE "E ".                    00690003
+           05 FILLER           PIC X(2)  VALUE "W ".                    00690003
+           05 FILLER           PIC X(2)  VALUE "HA".                    00690003
+      *                                                                 00690003
+       01  WS-TERRITORY-TABLE REDEFINES WS-TERRITORY-VALUES.            00690003
+           05 WS-TERRITORY     PIC X(2)                                 00690003
+                               OCCURS 10 TIMES                          00690003
+                               INDEXED BY TERRITORY-INDEX.              00690003
+      *                                                                 00690003
+       01  DL-DETAIL-LINE.                                              00690003
+           05 DL-TERRITORY     PIC X(2).                                00480003
+           05 DL-FILLER        PIC X(2).                                00510003
+           05 DL-DISTRICT      PIC X(4).                                00490003
+           05 DL-FILLER2       PIC X(1).                                00510003
+           05 DL-NUMBER        PIC X(3).                                00490003
+           05 DL-FILLER3       PIC X(2).                                00510003
+           05 DL-NAME          PIC X(18).                               00490003
+           05 DL-ADDRESS       PIC X(22).                               00500003
+           05 DL-CITY          PIC X(11).                               00500003
+           05 DL-STATE         PIC X(2).                                00510003
+           05 DL-ZIPCODE       PIC X(5).                                00520003
+           05 DL-FILLER4       PIC X(1).                                00510003
+           05 DL-PARTS         PIC X(2).                                00510003
+           05 DL-FILLER5       PIC X(1).                                00510003
+           05 DL-AMOUNT-OWED   PIC X(5).                                00530003
+           05 DL-FILLER6       PIC X(1).                                00510003
+           05 DL-LAST-PAY-DATE PIC X(8).                                00530003
+           05 DL-FILLER7       PIC X(1).                                00510003
+           05 DL-LAST-PAY-AMT  PIC X(6).                                00530003
+           05 DL-COUNTRY       PIC X(2).                                00530003
+      *                                                                 00690003
+       01  DL-ERROR-LINE.                                               00690003
+           05 ER-TERRITORY     PIC X(2).                                00480003
+           05 FILLER           PIC X(2).                                00510003
+           05 ER-DISTRICT      PIC X(4).                                00490003
+           05 FILLER           PIC X(1).                                00510003
+           05 ER-NUMBER        PIC X(3).                                00490003
+           05 FILLER           PIC X(2).                                00510003
+           05 ER-NAME          PIC X(18).                               00490003
+           05 ER-ADDRESS       PIC X(22).                               00500003
+           05 ER-CITY          PIC X(11).                               00500003
+           05 ER-STATE         PIC X(2).                                00510003
+           05 ER-ZIPCODE       PIC X(5).                                00520003
+           05 FILLER           PIC X(1).                                00510003
+           05 ER-PARTS         PIC X(2).                                00510003
+           05 FILLER           PIC X(1).                                00510003
+           05 ER-AMOUNT-OWED   PIC X(5).                                00530003
+           05 FILLER           PIC X(1).                                00510003
+           05 ER-LAST-PAY-DATE PIC X(8).                                00530003
+           05 FILLER           PIC X(1).                                00510003
+           05 ER-LAST-PAY-AMT  PIC X(6).                                00530003
+           05 ER-COUNTRY       PIC X(2).                                00530003
+      *                                                                 00690003
+       01  DL-MESSAGE-LINE.                                             00690003
+           05 ER-MESSAGE       PIC X(50).                               00480003
+           05 FILLER           PIC X(82).                               00530003
+      *                                                                 00690003
+       01  SUMMARY-LINE-1.                                              00690003
+           05 FILLER           PIC X(20) VALUE "TOTAL NUMBER OF RECO".  00700003
+           05 FILLER           PIC X(12) VALUE "RDS READ:   ".          00700003
+           05 SL-RECORDS-READ  PIC ZZ9.                                 00700003
+           05 FILLER           PIC X(97)  VALUE SPACE.                  00770003
+      *                                                                 00690003
+       01  SUMMARY-LINE-2.                                              00690003
+           05 FILLER           PIC X(20) VALUE "TOTAL NUMBER OF GOOD".  00700003
+           05 FILLER           PIC X(12) VALUE " RECORDS:   ".          00700003
+           05 SL-GOOD-RECORDS  PIC ZZ9.                                 00700003
+           05 FILLER           PIC X(97)  VALUE SPACE.                  00770003
+      *                                                                 00690003
+       01  SUMMARY-LINE-3.                                              00690003
+           05 FILLER           PIC X(20) VALUE "TOTAL NUMBER OF BAD ".  00700003
+           05 FILLER           PIC X(11) VALUE "RECORDS:   ".           00700003
+           05 SL-BAD-RECORDS   PIC ZZ9.                                 00700003
+           05 FILLER           PIC X(98)  VALUE SPACE.                  00770003
+      *                                                                 00690003
+       01  SUMMARY-LINE-4.                                              00690003
+           05 FILLER           PIC X(20) VALUE "TOTAL NUMBER OF RECO".  00700003
+           05 FILLER           PIC X(20) VALUE "RDS WITH NAME MISSIN".  00700003
+           05 FILLER           PIC X(4) VALUE "G   ".                   00700003
+           05 SL-NAME-MISSING  PIC ZZ9.                                 00700003
+           05 FILLER           PIC X(85)  VALUE SPACE.                  00770003
+      *                                                                 00690003
+       01  SUMMARY-LINE-5.                                              00690003
+           05 FILLER           PIC X(20) VALUE "TOTAL NUMBER OF RECO".  00700003
+           05 FILLER           PIC X(20) VALUE "RDS WITH NAME NOT AL".  00700003
+           05 FILLER           PIC X(11) VALUE "PHABETIC   ".           00700003
+           05 SL-NOT-ALPHA     PIC ZZ9.                                 00700003
+           05 FILLER           PIC X(78)  VALUE SPACE.                  00770003
+      *                                                                 00690003
+       01  HEADING-LINE-1.                                              00760003
+           05 FILLER           PIC X(46) VALUE SPACE.                   00760003
+           05 FILLER           PIC X(20) VALUE "DATA VALIDATION PROG".  00760003
+           05 FILLER           PIC X(20) VALUE "RAM           PAGE: ".  00760003
+           05 HL1-PAGE-NUMBER  PIC 9(3)   VALUE ZERO.                   00770003
+           05 FILLER           PIC X(43)  VALUE SPACE.                  00770003
+      *                                                                 00780003
+       01  FOOTER-LINE.                                                 00790003
+           05 FILLER           PIC X(42) VALUE SPACE.                   00760003
+           05 FILLER           PIC X(20) VALUE "***** CONFIDENTIAL D".  00760003
+           05 FILLER           PIC X(4) VALUE "ATA ".                   00760003
+           05 FL-MONTH         PIC X(9).                                00760003
+           05 FILLER           PIC X(1) VALUE SPACE.                    00760003
+           05 FL-DAY           PIC 9(2).                                00760003
+           05 FILLER           PIC X(2) VALUE ", ".                     00760003
+           05 FL-YEAR          PIC 9(4).                                00760003
+           05 FILLER           PIC X(6) VALUE " *****".                 00760003
+           05 FILLER           PIC X(42)  VALUE SPACE.                  00770003
+      *                                                                 00820004
+       01  GRAND-TOTALS.                                                00820004
+           05 TOTAL-CHARGES   PIC 9(7)V99 VALUE ZERO.                   00820004
+           05 TOTAL-DAYS      PIC 9(4) VALUE ZERO.                      00820004
+           05 TOTAL-GASUSED   PIC 9(5) VALUE ZERO.                      00820004
+           05 CUSTOMER-COUNT   PIC 9(3) VALUE ZERO.                     00820004
+      *                                                                 00820004
+       01  GTL-LINE.                                                    00820004
+           05 FILLER              PIC X(6) VALUE SPACE.                 00820004
+           05 FILLER             PIC X(20) VALUE "GRAND TOTALS        ".00820004
+           05 FILLER              PIC X(33) VALUE SPACE.                00820004
+           05 GTL-TOTAL-DAYS      PIC ZZZ9 VALUE ZERO.                  00820004
+           05 FILLER              PIC X(3) VALUE SPACE.                 00820004
+           05 GTL-TOTAL-CHARGES   PIC Z,ZZZ,ZZ9.99 VALUE ZERO.          00820004
+           05 FILLER              PIC X(1) VALUE SPACE.                 00820004
+           05 GTL-TOTAL-GASUSED   PIC ZZ,ZZ9 VALUE ZERO.                00820004
+           05 FILLER              PIC X(61) VALUE SPACE.                00820004
+      *                                                                 00820004
+       01  GTL-LINE2.                                                   00820004
+           05 FILLER              PIC X(6) VALUE SPACE.                 00820004
+           05 FILLER             PIC X(18) VALUE "CUSTOMERS ON FILE ".  00820004
+           05 GTL-CUSTOMER-COUNT  PIC ZZ9 VALUE SPACE.                  00820004
+           05 FILLER              PIC X(105) VALUE SPACE.               00820004
+      *                                                                 00770003
+      *                                                                 00780003
+      *                                                                 00790003
+       PROCEDURE DIVISION.                                              00800004
+      *                                                                 00810004
+       000-PROGRAM-CONTROL.                                             00820004
+           PERFORM INITIALIZE-PROGRAM.                                  00830004
+           PERFORM CREATE-REPORT                                        00840004
+               UNTIL WS-EOF-SWITCH = "Y".                               00850005
+           PERFORM FINALIZE.                                            00860005
+           STOP RUN.                                                    00870005
+      *                                                                 00880005
+       INITIALIZE-PROGRAM.                                              00890005
+           PERFORM OPEN-FILES.                                          00920005
+           PERFORM GET-DATE.                                            00920005
+           PERFORM READ-LINE.                                           00920005
+      *                                                                 00940005
+       CREATE-REPORT.                                                   00950005
+            PERFORM WRITE-LINE.                                         00920005
+            PERFORM READ-LINE.                                          00920005
+      *                                                                 01030005
+       FINALIZE.                                                        01040005
+           PERFORM PRINT-SUMMARY.                                       00950005
+           PERFORM PRINT-FOOTER.                                        00950005
+           PERFORM CLOSE-FILES.                                         00920005
+      *                                                                 01070005
+       OPEN-FILES.                                                      01040005
+           OPEN INPUT  INPUT-FILE.                                      00900005
+           OPEN OUTPUT REPORT-FILE.                                     00910005
+           OPEN OUTPUT GOOD-FILE.                                       00910005
+           OPEN OUTPUT BAD-FILE.                                        00910005
+      *                                                                 01070005
+       GET-DATE.                                                        01040005
+           MOVE FUNCTION CURRENT-DATE TO CURRENT-DATE-AND-TIME.         01050005
+           MOVE WS-MONTH-NAME(CD-MONTH) TO FL-MONTH.                    01060005
+           MOVE CD-DAY TO FL-DAY.                                       01060005
+           MOVE CD-YEAR TO FL-YEAR.                                     01060005
+      *                                                                 01070005
+       READ-LINE.                                                       01040005
+            READ INPUT-FILE                                             01010005
+                AT END MOVE "Y" TO WS-EOF-SWITCH.                       01020005
+      *                                                                 01060005
+       VALIDATE-THE-DATA.                                               01040005
+            MOVE "Y" TO PASSED.                                         00960006
+           IF IN-TERRITORY IS EQUAL TO SPACES                           00960006
+              MOVE "Y" TO ERROR-FLAG(1)                                 00960006
+              MOVE "N" TO PASSED                                        00960006
+              MOVE ALL "X" TO ER-TERRITORY                              00960006
+           ELSE                                                         00960006
+              SET TERRITORY-INDEX TO 1                                  00950005
+              SEARCH WS-TERRITORY                                       00950005
+                 AT END                                                 00950005
+                     MOVE "N" TO PASSED                                 00950005
+                     MOVE "Y" TO ERROR-FLAG(2)                          00960006
+                     MOVE ALL "X" TO ER-TERRITORY                       00960006
+                 WHEN WS-TERRITORY(TERRITORY-INDEX) = IN-TERRITORY      01040005
+                     MOVE "N" TO ERROR-FLAG(2)                          00960006
+           END-IF.                                                      00960006
+      *                                                                 01060005
+           IF IN-DISTRICT IS EQUAL TO SPACES                            00960006
+              MOVE "Y" TO ERROR-FLAG(3)                                 00960006
+              MOVE "N" TO PASSED                                        00960006
+              MOVE ALL "X" TO ER-DISTRICT                               00960006
+           ELSE                                                         00960006
+              IF IN-DISTRICT IS NOT NUMERIC                             00960006
+                 MOVE "Y" TO ERROR-FLAG(4)                              00960006
+                 MOVE "N" TO PASSED                                     00960006
+                 MOVE ALL "X" TO ER-DISTRICT                            00960006
+              END-IF                                                    00960006
+           END-IF.                                                      00960006
+      *                                                                 01060005
+           IF IN-NUMBER IS EQUAL TO SPACES                              00960006
+              MOVE "Y" TO ERROR-FLAG(5)                                 00960006
+              MOVE "N" TO PASSED                                        00960006
+              MOVE ALL "X" TO ER-NUMBER                                 00960006
+           END-IF.                                                      00960006
+      *                                                                 01060005
+           IF IN-NAME IS EQUAL TO SPACES                                00960006
+              DISPLAY "NAME MISSING"                                    00000000
+              ADD 1 TO MISSING-COUNT                                    00960006
+              MOVE "Y" TO ERROR-FLAG(6)                                 00960006
+              MOVE "N" TO PASSED                                        00960006
+              MOVE ALL "X" TO ER-NAME                                   00960006
+           END-IF.                                                      00960006
+      *                                                                 01060005
+           IF IN-NAME IS NOT ALPHABETIC                                 00960006
+              DISPLAY "NAME NOT ALPHABETIC"                             00000000
+              ADD 1 TO NOT-ALPHA-COUNT                                  00960006
+           END-IF.                                                      00960006
+      *                                                                 01060005
+           IF IN-ADDRESS IS EQUAL TO SPACES                             00960006
+              MOVE "Y" TO ERROR-FLAG(7)                                 00960006
+              MOVE "N" TO PASSED                                        00960006
+              MOVE ALL "X" TO ER-ADDRESS                                00960006
+           END-IF.                                                      00960006
+      *                                                                 01060005
+           IF IN-CITY IS EQUAL TO SPACES                                00960006
+              MOVE "Y" TO ERROR-FLAG(8)                                 00960006
+              MOVE "N" TO PASSED                                        00960006
+              MOVE ALL "X" TO ER-CITY                                   00960006
+           END-IF.                                                      00960006
+      *                                                                 01060005
+           IF IN-STATE IS EQUAL TO SPACES                               00960006
+              MOVE "Y" TO ERROR-FLAG(9)                                 00960006
+              MOVE "N" TO PASSED                                        00960006
+              MOVE ALL "X" TO ER-STATE                                  00960006
+           END-IF.                                                      00960006
+      *                                                                 01060005
+           IF IN-ZIPCODE IS EQUAL TO SPACES                             00960006
+              MOVE "Y" TO ERROR-FLAG(10)                                00960006
+              MOVE "N" TO PASSED                                        00960006
+              MOVE ALL "X" TO ER-ZIPCODE                                00960006
+           ELSE                                                         00960006
+              IF IN-ZIPCODE IS NOT NUMERIC                              00960006
+                 MOVE "Y" TO ERROR-FLAG(11)                             00960006
+                 MOVE "N" TO PASSED                                     00960006
+                 MOVE ALL "X" TO ER-ZIPCODE                             00960006
+              END-IF                                                    00960006
+           END-IF.                                                      00960006
+      *                                                                 01060005
+           IF IN-PARTS IS EQUAL TO SPACES                               00960006
+              MOVE "Y" TO ERROR-FLAG(12)                                00960006
+              MOVE "N" TO PASSED                                        00960006
+              MOVE ALL "X" TO ER-PARTS                                  00960006
+           ELSE                                                         00960006
+              IF IN-PARTS IS NOT NUMERIC                                00960006
+                 MOVE "Y" TO ERROR-FLAG(13)                             00960006
+                 MOVE "N" TO PASSED                                     00960006
+                 MOVE ALL "X" TO ER-PARTS                               00960006
+              END-IF                                                    00960006
+           END-IF.                                                      00960006
+      *                                                                 01060005
+           IF IN-AMOUNT-OWED IS EQUAL TO SPACES                         00960006
+              MOVE "Y" TO ERROR-FLAG(14)                                00960006
+              MOVE "N" TO PASSED                                        00960006
+              MOVE ALL "X" TO ER-AMOUNT-OWED                            00960006
+           ELSE                                                         00960006
+              IF IN-AMOUNT-OWED IS NOT NUMERIC                          00960006
+                 MOVE "Y" TO ERROR-FLAG(15)                             00960006
+                 MOVE "N" TO PASSED                                     00960006
+                 MOVE ALL "X" TO ER-AMOUNT-OWED                         00960006
+              END-IF                                                    00960006
+           END-IF.                                                      00960006
+      *                                                                 01060005
+           IF IN-LAST-PAY-DATE IS EQUAL TO SPACES                       00960006
+              MOVE "Y" TO ERROR-FLAG(16)                                00960006
+              MOVE "N" TO PASSED                                        00960006
+              MOVE ALL "X" TO ER-LAST-PAY-DATE                          00960006
+           ELSE                                                         00960006
+              IF IN-LAST-PAY-DATE IS NOT NUMERIC                        00960006
+                 MOVE "Y" TO ERROR-FLAG(17)                             00960006
+                 MOVE "N" TO PASSED                                     00960006
+                 MOVE ALL "X" TO ER-LAST-PAY-DATE                       00960006
+                 ELSE                                                   00960006
+                    MOVE IN-LAST-PAY-DATE TO ALPH-DAY                   00960006
+                    MOVE IN-LAST-PAY-DATE TO ALPH-MONTH                 00960006
+                    MOVE ALPH-DAY TO NM-DAY                             00960006
+                    MOVE ALPH-MONTH TO NM-MONTH                         00960006
+                    DISPLAY ALPH-DAY                                    00960006
+                    DISPLAY ALPH-MONTH                                  00960006
+                    DISPLAY NM-DAY                                      00960006
+                    DISPLAY NM-MONTH                                    00960006
+                    IF NM-MONTH < 1 OR NM-MONTH > 12                    00960006
+                       MOVE "Y" TO ERROR-FLAG(18)                       00960006
+                       MOVE "N" TO PASSED                               00960006
+                       MOVE ALL "X" TO ER-LAST-PAY-DATE                 00960006
+                    ELSE                                                00960006
+                       IF NM-DAY < 1 OR NM-DAY > 31                     00960006
+                          MOVE "Y" TO ERROR-FLAG(19)                    00960006
+                          MOVE "N" TO PASSED                            00960006
+                          MOVE ALL "X" TO ER-LAST-PAY-DATE              00960006
+                       END-IF                                           00960006
+                    END-IF                                              00960006
+              END-IF                                                    00960006
+           END-IF.                                                      00960006
+      *                                                                 01060005
+           IF IN-LAST-PAY-AMT IS EQUAL TO SPACES                        00960006
+              MOVE "Y" TO ERROR-FLAG(20)                                00960006
+              MOVE "N" TO PASSED                                        00960006
+              MOVE ALL "X" TO ER-LAST-PAY-AMT                           00960006
+           ELSE                                                         00960006
+              IF IN-LAST-PAY-AMT IS NOT NUMERIC                         00960006
+                 MOVE "Y" TO ERROR-FLAG(21)                             00960006
+                 MOVE "N" TO PASSED                                     00960006
+                 MOVE ALL "X" TO ER-LAST-PAY-AMT                        00960006
+              END-IF                                                    00960006
+           END-IF.                                                      00960006
+      *                                                                 01060005
+           IF IN-COUNTRY IS EQUAL TO SPACES                             00960006
+              MOVE "Y" TO ERROR-FLAG(22)                                00960006
+              MOVE "N" TO PASSED                                        00960006
+              MOVE ALL "X" TO ER-COUNTRY                                00960006
+           ELSE                                                         00960006
+              IF IN-COUNTRY IS NOT NUMERIC                              00960006
+                 MOVE "Y" TO ERROR-FLAG(23)                             00960006
+                 MOVE "N" TO PASSED                                     00960006
+                 MOVE ALL "X" TO ER-COUNTRY                             00960006
+                 ELSE                                                   00960006
+                    MOVE IN-COUNTRY TO NM-COUNTRY                       00960006
+                    IF NM-COUNTRY < 1 OR NM-COUNTRY > 15                00960006
+                       MOVE "Y" TO ERROR-FLAG(24)                       00960006
+                       MOVE "N" TO PASSED                               00960006
+                       MOVE ALL "X" TO ER-COUNTRY                       00960006
+                    END-IF                                              00960006
+              END-IF                                                    00960006
+           END-IF.                                                      00960006
+      *                                                                 01070005
+       RESET-DATA.                                                      01040005
+           MOVE IN-TERRITORY TO DL-TERRITORY.                           00480003
+           MOVE IN-FILLER TO DL-FILLER.                                 00480003
+           MOVE IN-DISTRICT TO DL-DISTRICT.                             00480003
+           MOVE IN-FILLER2 TO DL-FILLER2.                               00480003
+           MOVE IN-NUMBER TO DL-NUMBER.                                 00480003
+           MOVE IN-FILLER3 TO DL-FILLER3.                               00480003
+           MOVE IN-NAME TO DL-NAME.                                     00480003
+           MOVE IN-ADDRESS TO DL-ADDRESS.                               00480003
+           MOVE IN-CITY TO DL-CITY.                                     00480003
+           MOVE IN-STATE TO DL-STATE.                                   00480003
+           MOVE IN-ZIPCODE TO DL-ZIPCODE.                               00480003
+           MOVE IN-FILLER4 TO DL-FILLER4.                               00480003
+           MOVE IN-PARTS TO DL-PARTS.                                   00480003
+           MOVE IN-FILLER5 TO DL-FILLER5.                               00480003
+           MOVE IN-AMOUNT-OWED TO DL-AMOUNT-OWED.                       00480003
+           MOVE IN-FILLER6 TO DL-FILLER6.                               00480003
+           MOVE IN-LAST-PAY-DATE TO DL-LAST-PAY-DATE.                   00480003
+           MOVE IN-FILLER7 TO DL-FILLER7.                               00480003
+           MOVE IN-LAST-PAY-AMT TO DL-LAST-PAY-AMT.                     00480003
+           MOVE IN-COUNTRY TO DL-COUNTRY.                               00480003
+           MOVE SPACE          TO ER-TERRITORY.                         00960006
+           MOVE SPACE          TO ER-DISTRICT.                          00980006
+           MOVE SPACE          TO ER-NUMBER.                            00980006
+           MOVE SPACE          TO ER-NAME.                              00980006
+           MOVE SPACE          TO ER-ADDRESS.                           00980006
+           MOVE SPACE          TO ER-CITY.                              00980006
+           MOVE SPACE          TO ER-STATE.                             00980006
+           MOVE SPACE          TO ER-ZIPCODE.                           00980006
+           MOVE SPACE          TO ER-PARTS.                             00980006
+           MOVE SPACE          TO ER-AMOUNT-OWED.                       00980006
+           MOVE SPACE          TO ER-LAST-PAY-DATE.                     00980006
+           MOVE SPACE          TO ER-LAST-PAY-AMT.                      00980006
+           MOVE SPACE          TO ER-COUNTRY.                           00980006
+           PERFORM RESET-FLAGS                                          01040005
+              VARYING WS-ERROR-SUB FROM 1 BY 1                          01040005
+              UNTIL WS-ERROR-SUB > 24.                                  01040005
+      *                                                                 01070005
+       RESET-FLAGS.                                                     01040005
+           MOVE "N" TO ERROR-FLAG(WS-ERROR-SUB).                        00950005
+      *                                                                 01070005
+       WRITE-LINE.                                                      01040005
+           IF LINE-COUNT > LINES-PER-PAGE                               00950005
+              PERFORM PRINT-HEADER.                                     00950005
+           PERFORM RESET-DATA.                                          00920005
+           WRITE REPORT-LINE FROM DL-DETAIL-LINE                        00990005
+           AFTER ADVANCING 1 LINE.                                      01000005
+           ADD 1 TO LINE-COUNT.                                         01000005
+           IF LINE-COUNT > LINES-PER-PAGE                               00950005
+              PERFORM PRINT-HEADER.                                     00950005
+           PERFORM VALIDATE-THE-DATA.                                   00920005
+           ADD 1 TO RECORD-COUNT.                                       01000005
+           WRITE REPORT-LINE FROM DL-ERROR-LINE                         00990005
+           AFTER ADVANCING 1 LINE.                                      01000005
+           IF PASS                                                      00980006
+              ADD 1 TO GOOD-COUNT                                       01000005
+              WRITE GOOD-LINE FROM DL-DETAIL-LINE                       00990005
+           END-IF.                                                      00980006
+           IF FAIL                                                      00980006
+              ADD 1 TO BAD-COUNT                                        01000005
+              WRITE BAD-LINE FROM DL-DETAIL-LINE                        00990005
+              PERFORM WRITE-ERROR-MESSAGES                              00920005
+              VARYING WS-ERROR-SUB FROM 1 BY 1                          01040005
+              UNTIL WS-ERROR-SUB > 24                                   01040005
+           END-IF.                                                      00980006
+      *                                                                 01070005
+       WRITE-ERROR-MESSAGES.                                            01040005
+           IF LINE-COUNT > LINES-PER-PAGE                               00950005
+              PERFORM PRINT-HEADER.                                     00950005
+           IF ERROR-FLAG(WS-ERROR-SUB) = "Y"                            00960006
+              MOVE ERROR-MSG(WS-ERROR-SUB) TO ER-MESSAGE                01000005
+              WRITE REPORT-LINE FROM DL-MESSAGE-LINE                    00990005
+              AFTER ADVANCING 1 LINE                                    01000005
+              ADD 1 TO LINE-COUNT                                       01000005
+              IF LINE-COUNT > LINES-PER-PAGE                            00950005
+                 PERFORM PRINT-HEADER                                   00950005
+              END-IF                                                    00950005
+           END-IF.                                                      00950005
+      *                                                                 01070005
+       CLOSE-FILES.                                                     01040005
+           CLOSE INPUT-FILE.                                            01050005
+           CLOSE REPORT-FILE.                                           01060005
+           CLOSE GOOD-FILE.                                             01060005
+           CLOSE BAD-FILE.                                              01060005
+      *                                                                 01070005
+       PRINT-SUMMARY.                                                   01040005
+           PERFORM PRINT-HEADER.                                        00000000
+           MOVE RECORD-COUNT TO SL-RECORDS-READ.                        01060005
+           MOVE GOOD-COUNT TO SL-GOOD-RECORDS.                          01060005
+           MOVE BAD-COUNT TO SL-BAD-RECORDS.                            01060005
+           MOVE MISSING-COUNT TO SL-NAME-MISSING.                       01060005
+           MOVE NOT-ALPHA-COUNT TO SL-NOT-ALPHA.                        01060005
+           WRITE REPORT-LINE FROM SUMMARY-LINE-1                        01060005
+           AFTER ADVANCING 2 LINES.                                     01060005
+           WRITE REPORT-LINE FROM SUMMARY-LINE-2                        01060005
+           AFTER ADVANCING 1 LINE.                                      01060005
+           WRITE REPORT-LINE FROM SUMMARY-LINE-3                        01060005
+           AFTER ADVANCING 1 LINE.                                      01060005
+           WRITE REPORT-LINE FROM SUMMARY-LINE-4                        01060005
+           AFTER ADVANCING 1 LINE.                                      01060005
+           WRITE REPORT-LINE FROM SUMMARY-LINE-5                        01060005
+           AFTER ADVANCING 1 LINE.                                      01060005
+           ADD 6 TO LINE-COUNT.                                         01000005
+      *                                                                 01060005
+       PRINT-FOOTER.                                                    01040005
+           DISPLAY "PRINT FOOTER".                                      01050005
+           COMPUTE DIFFERENCE = MAX-LINES - LINE-COUNT.                 01050005
+           MOVE PAGE-COUNT TO HL1-PAGE-NUMBER.                          01060005
+           WRITE REPORT-LINE FROM FOOTER-LINE                           01060005
+           AFTER ADVANCING DIFFERENCE LINES.                            01060005
+      *                                                                 01060005
+       PRINT-HEADER.                                                    01040005
+           IF PAGE-COUNT > 0                                            00950005
+           PERFORM PRINT-FOOTER.                                        00950005
+           DISPLAY "PRINT HEADER".                                      01050005
+           ADD 1 TO PAGE-COUNT.                                         01050005
+           MOVE PAGE-COUNT TO HL1-PAGE-NUMBER.                          01060005
+           WRITE REPORT-LINE FROM HEADING-LINE-1                        01060005
+           AFTER ADVANCING PAGE.                                        01060005
+           MOVE 1 TO LINE-COUNT.                                        01070005
+      *                                                                 01060005
+
